@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Gastos</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fa-solid fa-wallet"></i> Gestor de Gastos</h1>
+        
+        <form id="gasto-form">
+            <input type="text" id="descripcion" placeholder="Descripción" required>
+            <input type="number" id="monto" placeholder="Monto" required>
+            <input type="text" id="categoria" placeholder="Categoría" required>
+            <button type="submit"><i class="fa-solid fa-plus"></i> Agregar</button>
+        </form>
+
+        <table id="gastos-table">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                    <th>Categoría</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="gastos-body"></tbody>
+        </table>
+    </div>
+    <script src="src/js/app.js"></script>
+</body>
+</html>

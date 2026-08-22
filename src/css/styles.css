@@ -1,0 +1,8 @@
+body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+.container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+form { display: flex; gap: 10px; margin-bottom: 20px; }
+input, button { padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+button { background: #333; color: white; cursor: pointer; }
+button.delete { background: #d9534f; }
