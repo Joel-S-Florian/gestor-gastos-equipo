@@ -3,33 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gestor de gastos personal con estadisticas, filtros y exportacion CSV">
     <title>Gestor de Gastos</title>
     <link rel="stylesheet" href="src/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1><i class="fa-solid fa-wallet"></i> Gestor de Gastos</h1>
-        
-        <form id="gasto-form">
-            <input type="text" id="descripcion" placeholder="Descripción" required>
-            <input type="number" id="monto" placeholder="Monto" required>
-            <input type="text" id="categoria" placeholder="Categoría" required>
-            <button type="submit"><i class="fa-solid fa-plus"></i> Agregar</button>
-        </form>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-icon"><i class="fa-solid fa-wallet"></i></span>
+            <h1>Gestor de Gastos</h1>
+        </div>
+        <div class="topbar-actions">
+            <button id="theme-toggle" class="icon-btn" title="Cambiar tema" aria-label="Cambiar tema">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
 
-        <table id="gastos-table">
-            <thead>
-                <tr>
-                    <th>Descripción</th>
-                    <th>Monto</th>
-                    <th>Categoría</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="gastos-body"></tbody>
-        </table>
+    <main class="container">
+        <!-- Resumen / Dashboard -->
+        <section class="stats-grid">
+            <article class="stat-card">
+                <span class="stat-icon total"><i class="fa-solid fa-sack-dollar"></i></span>
+                <div>
+                    <p class="stat-label">Total gastado</p>
+                    <p class="stat-value" id="stat-total">S/ 0.00</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <span class="stat-icon month"><i class="fa-solid fa-calendar-days"></i></span>
+                <div>
+                    <p class="stat-label">Este mes</p>
+                    <p class="stat-value" id="stat-month">S/ 0.00</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <span class="stat-icon avg"><i class="fa-solid fa-chart-line"></i></span>
+                <div>
+                    <p class="stat-label">Promedio por gasto</p>
+                    <p class="stat-value" id="stat-avg">S/ 0.00</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <span class="stat-icon count"><i class="fa-solid fa-receipt"></i></span>
+                <div>
+                    <p class="stat-label">Registros</p>
+                    <p class="stat-value" id="stat-count">0</p>
+                </div>
+            </article>
+        </section>
+
+        <div class="layout-grid">
+            <!-- Columna izquierda: formulario + grafico -->
+            <section class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-circle-plus"></i> Nuevo gasto</h2>
+                <form id="gasto-form">
+                    <input type="hidden" id="gasto-id">
+                    <div class="field">
+                        <label for="descripcion">Descripcion</label>
+                        <input type="text" id="descripcion" placeholder="Ej. Compra semanal" required maxlength="80">
+                    </div>
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="monto">Monto</label>
+                            <input type="number" id="monto" placeholder="0.00" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="field">
+                            <label for="fecha">Fecha</label>
+                            <input type="date" id="fecha" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="categoria">Categoria</label>
+                        <select id="categoria" required></select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="btn-submit">
+                            <i class="fa-solid fa-plus"></i> Agregar
+                        </button>
+                        <button type="button" class="btn btn-secondary hidden" id="btn-cancel">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-chart-pie"></i> Gastos por categoria</h2>
+                <div class="chart-wrap">
+                    <canvas id="chart-categorias"></canvas>
+                </div>
+                <p class="empty-chart hidden" id="chart-empty">
+                    <i class="fa-regular fa-folder-open"></i>
+                    Agrega gastos para ver el grafico
+                </p>
+            </section>
+        </div>
+
+        <!-- Tabla de gastos -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="fa-solid fa-list-ul"></i> Historial</h2>
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="buscar" placeholder="Buscar...">
+                    </div>
+                    <select id="filtro-categoria" aria-label="Filtrar por categoria">
+                        <option value="">Todas las categorias</option>
+                    </select>
+                    <select id="orden" aria-label="Ordenar">
+                        <option value="fecha-desc">Mas reciente</option>
+                        <option value="fecha-asc">Mas antiguo</option>
+                        <option value="monto-desc">Mayor monto</option>
+                        <option value="monto-asc">Menor monto</option>
+                    </select>
+                    <button class="btn btn-secondary" id="btn-exportar" title="Exportar CSV">
+                        <i class="fa-solid fa-file-csv"></i> CSV
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table id="gastos-table">
+                    <thead>
+                        <tr>
+                            <th>Descripcion</th>
+                            <th>Categoria</th>
+                            <th>Fecha</th>
+                            <th class="col-right">Monto</th>
+                            <th class="col-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gastos-body"></tbody>
+                    <tfoot id="gastos-foot"></tfoot>
+                </table>
+                <p class="empty-table hidden" id="tabla-empty">
+                    <i class="fa-regular fa-face-smile"></i>
+                    No hay gastos que mostrar
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>Datos guardados localmente en tu navegador</p>
+    </footer>
+
+    <!-- Confirmacion de borrado -->
+    <div class="modal-overlay hidden" id="modal-confirm">
+        <div class="modal">
+            <span class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <h3>Eliminar gasto</h3>
+            <p id="modal-text">Esta accion no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="modal-cancel">Cancelar</button>
+                <button class="btn btn-danger" id="modal-ok"><i class="fa-solid fa-trash"></i> Eliminar</button>
+            </div>
+        </div>
     </div>
+
+    <div class="toast hidden" id="toast"></div>
+
     <script src="src/js/app.js"></script>
 </body>
 </html>
